@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--为这个mapper指定一个唯一的namespace，namespace的值设置成DAO接口名，这样就能够保证能够匹配DAO接口-->
+<mapper namespace="com.example.graduationproject.mapper.EditorMapper">
+    <select id="getDraftBrowse" resultType="EditorBrowse">
+        select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType,i.draftColumn from state t inner join
+                 (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                      on t.draftInformationId=i.draftInformationId  where t.editorAdopt=0
+    </select>
+    <update id="adopt">
+        update state set editorAdopt=1,editorAdoptDate=#{editorAdoptDate},auditIds=#{auditIds} where stateId=#{stateId}
+    </update>
+    <update id="adoptRe">
+        update state set editorAdopt=1,editorAdoptDate=#{editorAdoptDate} where stateId=#{stateId}
+    </update>
+    <update id="ret">
+        update state set editorAdopt=2,editorAdoptDate=#{editorAdoptDate},advise=#{advise} where stateId=#{stateId}
+    </update>
+    <select id="selectStateIdNew" resultType="Modify">
+        select * from modify where stateIdNew=#{stateIdNew}
+    </select>
+    <select id="original" resultType="EditorOriginal">
+    select v.*,m.modifyWishDate,m.modifyAdvise from modify m inner join
+        (select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType from state t inner join
+              (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                    on t.draftInformationId=i.draftInformationId) v on m.stateId=v.stateId where m.stateId=#{stateId}
+    </select>
+    <select id="getAdoptDraft" resultType="EditorAdopt">
+        select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType,i.draftColumn from state t inner join
+             (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                on t.draftInformationId=i.draftInformationId  where t.editorAdopt=1
+    </select>
+    <select id="selectAuditAdoptAudit" resultType="AuditAdoptAudit">
+        select a.auditAdoptId,a.stateId,a.auditAdoptResult,a.auditAdoptAdvise,a.auditAdoptDateT,b.* from audit b left join auditadopt a on a.auditId=b.auditId where  b.auditId=#{auditId}
+    </select>
+    <select id="getReturnDraft" resultType="EditorBrowse">
+        select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType from state t inner join
+             (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                 on t.draftInformationId=i.draftInformationId  where t.editorAdopt=2
+    </select>
+    <select id="selectAudit" resultType="Audit">
+        select * from audit where auditId=#{auditId}
+    </select>
+    <select id="getAuditAdopt" resultType="EditorBrowse">
+        select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType,i.draftColumn from state t inner join
+              (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                    on t.draftInformationId=i.draftInformationId  where t.auditAdopt=0 and t.editorAdopt=1
+    </select>
+    <select id="AuditAdopt" resultType="AuditAdopt">
+        select * from auditadopt where auditId=#{auditId}
+    </select>
+    <insert id="auditAdoptOne">
+        insert into auditadopt(auditId,stateId,auditAdoptResult,auditAdoptDateT) values (#{auditId},#{stateId},#{auditAdoptResult},#{auditAdoptDateT})
+    </insert>
+    <update id="updateAuditOneCount">
+        update audit set auditBrowseCount=auditBrowseCount+1,auditAdoptCount=auditAdoptCount+1 where auditId=#{auditId}
+    </update>
+    <insert id="auditAdoptTwo">
+        insert into auditadopt(auditId,stateId,auditAdoptResult,auditAdoptAdvise,auditAdoptDateT) values (#{auditId},#{stateId},'不及格',#{auditAdoptAdvise},#{auditAdoptDateT})
+    </insert>
+    <update id="updateAuditTwoCount">
+        update audit set auditBrowseCount=auditBrowseCount+1 where auditId=#{auditId}
+    </update>
+    <select id="getAuditAdoptTrue" resultType="AuditAdoptTrue">
+    select c.*,b.auditAdoptId,b.auditId,b.auditAdoptResult,b.auditAdoptAdvise,b.auditAdoptDateT from auditadopt b inner join
+        (select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType,i.draftColumn from state t inner join
+            (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                on t.draftInformationId=i.draftInformationId where  t.editorAdopt=1 ) c  on c.stateId=b.stateId where b.auditAdoptResult!='不及格'
+    </select>
+    <select id="getAuditAdoptFalse" resultType="AuditAdoptTrue">
+        select c.*,b.auditAdoptId,b.auditId,b.auditAdoptResult,b.auditAdoptAdvise,b.auditAdoptDateT from auditadopt b inner join
+              (select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType,i.draftColumn from state t inner join
+                    (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                        on t.draftInformationId=i.draftInformationId where  t.editorAdopt=1 ) c  on c.stateId=b.stateId where b.auditAdoptResult='不及格'
+    </select>
+    <select id="getOutcome" resultType="EditorAdopt">
+        select t.*,i.fileName,i.fileLocation,i.fileId,i.draftCTitle,i.date,i.draftType from state t inner join
+            (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.date,d.draftType from draftinformation d inner join fileaddress f on d.fileId=f.fileId) i
+                on t.draftInformationId=i.draftInformationId  where t.editorAdopt=1
+    </select>
+    <insert id="insertAuditFree">
+        insert into auditfree(draftInformationId,draftCTitle,deliverMoney,startDate,endDate,expendMoney) values (#{draftInformationId},#{draftCTitle},#{auditFree},#{startDate},#{auditFreeDate},'否')
+    </insert>
+    <insert id="insertAuditAdoptTwo">
+        insert into modify(modifyWishDate,modifyAdvise,stateId) values (#{wishDate},#{modifyAdvise},#{stateId})
+    </insert>
+    <update id="updateEditorTwo">
+        update state set auditAdopt=2,auditAdoptDate=#{auditAdoptDate} where stateId=#{stateId}
+    </update>
+    <update id="updateEditorOne">
+        update state set auditAdopt=1,auditAdoptDate=#{auditAdoptDate} where stateId=#{stateId}
+    </update>
+    <insert id="insertVersionFree">
+        insert into versionfree(draftInformationId,draftCTitle,deliverMoney,startDate,endDate,expendMoney) values (#{draftInformationId},#{draftCTitle},#{auditFree},#{startDate},#{auditFreeDate},'否')
+    </insert>
+    <select id="getVersionFree" resultType="VersionFreeState">
+        select b.*,f.fileLocation,f.fileName from
+            (select v.*,d.draftColumn,d.fileId from versionfree v inner join draftinformation d on v.draftInformationId=d.draftInformationId) b
+                inner join fileaddress f on b.fileId=f.fileId
+    </select>
+    <update id="updateVersionFree">
+        update versionfree set deliverMoney=#{deliverMoney},endDate=#{endDate} where versionFreeId=#{versionFreeId}
+    </update>
+    <select id="getAuditFree" resultType="AuditFreeState">
+        select b.*,f.fileLocation,f.fileName from
+            (select v.*,d.draftColumn,d.fileId from auditfree v inner join draftinformation d on v.draftInformationId=d.draftInformationId) b
+                inner join fileaddress f on b.fileId=f.fileId
+    </select>
+    <update id="updateAuditFree">
+        update auditfree set deliverMoney=#{deliverMoney},endDate=#{endDate} where auditFreeId=#{auditFreeId}
+    </update>
+    <select id="getVersion" resultType="VersionFreeState">
+        select b.*,f.fileLocation,f.fileName from
+            (select v.*,d.draftColumn,d.fileId from versionfree v inner join draftinformation d on v.draftInformationId=d.draftInformationId) b
+                inner join fileaddress f on b.fileId=f.fileId where f.accountId=#{userId}
+    </select>
+    <select id="getCognizance" resultType="AuditFreeState">
+        select b.*,f.fileLocation,f.fileName from
+            (select v.*,d.draftColumn,d.fileId from auditfree v inner join draftinformation d on v.draftInformationId=d.draftInformationId) b
+                inner join fileaddress f on b.fileId=f.fileId where f.accountId=#{userId}
+    </select>
+    <select id="getBalance" resultType="Balance">
+        select * from balance where accountId=#{accountId}
+    </select>
+    <update id="setBalance">
+        update balance set balanceCount=#{balanceCount} where accountId=#{accountId}
+    </update>
+    <update id="setAuditFree">
+        update auditfree set expendMoney='是' where auditFreeId=#{auditFreeId}
+    </update>
+    <update id="setVersionFree">
+        update versionfree set expendMoney='是' where versionFreeId=#{versionFreeId}
+    </update>
+    <select id="userBalance" resultType="Balance">
+        select * from balance where accountId=#{accountId}
+    </select>
+    <update id="userBalanceAdd">
+        update balance set balanceCount=balanceCount+#{balanceCount} where accountId=#{accountId}
+    </update>
+    <insert id="setFreeOrder">
+        insert into `order`(orderDate,orderMoney,accountId,orderType) values (#{orderDate},#{orderMoney},#{accountId},#{orderType})
+    </insert>
+    <select id="getOrder" resultType="Order">
+        select * from `order` where accountId=#{accountId}
+    </select>
+    <select id="getDraftFree" resultType="DraftFreeState">
+        select n.*,b.draftFreeId,b.draftFreeMoney,b.draftFreeDate,b.draftFreeStuta from (select v.* from state s inner join
+            (select d.draftCTitle,d.draftColumn,d.draftInformationId,f.fileLocation,f.fileName,f.fileId from draftinformation d inner join fileaddress f on d.fileId=f.fileId) v
+                on s.draftInformationId=v.draftInformationId where s.auditAdopt=1) n left join draftfree b on n.draftInformationId=b.draftInformationId
+    </select>
+    <insert id="updateDraftFree">
+        insert into draftfree(draftInformationId,draftFreeMoney,draftFreeStuta,draftFreeDate) values (#{draftInformationId},#{draftFreeMoney},'是',#{draftFreeDate})
+    </insert>
+    <select id="getAccountId" resultType="Account">
+        select f.accountId from draftinformation d inner join fileaddress f on d.fileId=f.fileId where d.draftInformationId=#{draftInformationId}
+    </select>
+    <select id="getDraftFreeUser" resultType="DraftFreeState">
+        select n.*,b.draftFreeId,b.draftFreeMoney,b.draftFreeDate,b.draftFreeStuta from (select v.* from state s inner join
+            (select d.draftCTitle,d.draftColumn,d.draftInformationId,f.fileLocation,f.fileName,f.fileId from draftinformation d inner join fileaddress f on d.fileId=f.fileId where f.accountId=#{accountId}) v
+                   on s.draftInformationId=v.draftInformationId where s.auditAdopt=1) n left join draftfree b on n.draftInformationId=b.draftInformationId
+    </select>
+    <select id="getAccount" resultType="Account">
+        select * from account where accountId=#{accountId}
+    </select>
+    <update id="updateAccountPwd">
+        update account set accountPwd=#{accountPwd} where accountId=#{accountId}
+    </update>
+</mapper>

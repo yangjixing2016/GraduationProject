@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--为这个mapper指定一个唯一的namespace，namespace的值设置成DAO接口名，这样就能够保证能够匹配DAO接口-->
+<mapper namespace="com.example.graduationproject.mapper.FileMapper">
+    <insert id="addFile">
+        insert into fileaddress(fileName,fileLocation,accountId,fileType,fileBody) values(#{fileName},#{fileLocation},#{accountId},#{fileType},#{fileBody})
+    </insert>
+    <select id="getFileId" resultType="FileAddress">
+        select fileId from fileaddress where accountId=#{accountId} and fileName=#{fileName} and fileLocation=#{fileLocation}
+    </select>
+    <delete id="RemoveFile">
+        delete from fileaddress where fileId=#{fileId} or fileBody=#{fileId}
+    </delete>
+    <select id="getRemoveFileEtc" resultType="FileAddress">
+        select fileLocation from fileaddress where fileBody=#{fileId}
+    </select>
+    <update id="RemoveFileName">
+        update fileaddress set fileName=#{newFileName} where fileId=#{fileId}
+    </update>
+    <insert id="insertDraftInformation">
+        insert into draftinformation(draftType,draftCTitle,draftETitle,draftCKey,draftEKey,draftCSummary,draftESummary,draftCProject,draftEProject,draftColumn,draftPage,draftRemark,fileId,date)
+        values (#{draftType},#{draftCTitle},#{draftETitle},#{draftCKey},#{draftEKey},#{draftCSummary},#{draftESummary},#{draftCProject},#{draftEProject},#{draftColumn},#{draftPage},#{draftRemark},#{fileId},#{date})
+    </insert>
+    <select id="selectDraftInformationId" resultType="DraftInformation">
+        select draftInformationId from draftinformation where fileId=#{fileId}
+    </select>
+    <insert id="insertAuthorsInformation">
+        insert into authorinformation(authorName,authorSex,authorBirth,authorSchool,authorAddress,authorNumber,authorCounty,authorProvince,authorProfession,authorEducation,authorPhone,authorEmail,authorIntroduce,draftInformationId,author,radio)
+        values (#{authorName},#{authorSex},#{authorBirth},#{authorSchool},#{authorAddress},#{authorNumber},#{authorCounty},#{authorProvince},#{authorProfession},#{authorEducation},#{authorPhone},#{authorEmail},#{authorIntroduce},#{draftInformationId},#{author},#{radio})
+    </insert>
+    <insert id="insertStateNotAudit">
+        insert into state(editorBrowse,editorAdopt,auditBrowse,auditAdopt,draftInformationId)
+        values(0,0,0,0,#{draftInformationId})
+    </insert>
+    <insert id="insertState">
+        insert into state(editorBrowse,editorAdopt,auditBrowse,auditAdopt,draftInformationId,auditIds)
+        values(0,0,0,0,#{draftInformationId},#{auditIds})
+    </insert>
+    <select id="selectDraft" resultType="StateInformation">
+        select r.*,e.advise,e.editorBrowse,e.editorBrowseDate,e.editorAdopt,e.editorAdoptDate,e.auditBrowse,e.auditBrowseDate,e.auditAdopt,e.auditAdoptDate
+        from (select d.* from fileaddress f inner join draftinformation d on f.fileId=d.fileId where f.accountId=#{accountId}) r inner join state e where r.draftInformationId=e.draftInformationId
+    </select>
+    <select id="selectAudit" resultType="Audit">
+        select * from audit where auditType=#{draftColumn}
+    </select>
+    <select id="getDraftInformation" resultType="StateInformation">
+        select r.*,e.advise from draftinformation r inner join state e on r.draftInformationId=e.draftInformationId  where r.draftInformationId=#{draftInformationId}
+    </select>
+    <select id="getDraftInformationAuthor" resultType="AuthorInformation">
+        select * from authorinformation  where draftInformationId=#{draftInformationId}
+    </select>
+    <select id="getAuthor" resultType="AuthorInformation">
+        select * from authorinformation where authorId=#{authorId}
+    </select>
+    <update id="updateAuthor">
+        update authorinformation set author=#{author},authorName=#{authorName},authorSex=#{authorSex},
+        authorBirth=#{authorBirth},authorCounty=#{authorCounty},authorProvince=#{authorProvince},authorPhone=#{authorPhone},
+        authorProfession=#{authorProfession},authorEducation=#{authorEducation},authorEmail=#{authorEmail},authorSchool=#{authorSchool},
+        authorAddress=#{authorAddress},authorNumber=#{authorNumber},authorIntroduce=#{authorIntroduce},radio=#{radio} where authorId=#{authorId}
+    </update>
+    <update id="updateAuthorEtc">
+        update authorinformation set radio=0 where authorId=#{authorId}
+    </update>
+    <delete id="delAuthor">
+        delete from authorinformation where authorId=#{authorId}
+    </delete>
+    <select id="modify" resultType="ModifyState">
+        select m.modifyId,m.modifyWishDate,m.modifyAdvise,m.stateId,s.auditIds,s.draftInformationId,s.auditAdoptDate,s.fileName,s.fileLocation,s.fileId,s.draftCTitle,s.draftType,s.draftColumn from modify m inner join
+            (select t.stateId,t.draftInformationId,t.auditAdoptDate,t.auditIds,i.draftType,i.draftColumn,i.fileName,i.fileLocation,i.fileId,i.draftCTitle from state t inner join
+                (select f.fileName,f.fileLocation,d.fileId,d.draftCTitle,d.draftInformationId,d.draftType,d.draftColumn from draftinformation d inner join fileaddress f on d.fileId=f.fileId where f.accountId=#{accountId}) i
+                    on t.draftInformationId=i.draftInformationId) s
+                on m.stateId=s.stateId where m.stateIdNew is null
+    </select>
+    <update id="modifyUpdate">
+        update modify set stateIdNew=#{stateIdNew} where modifyId=#{modifyId}
+    </update>
+    <select id="modifyIdSelect" resultType="State">
+        select stateId from state where draftInformationId=#{draftInformationId}
+    </select>
+    <update id="down">
+        update state set editorBrowse=1,editorBrowseDate=#{editorBrowseDate} where stateId=#{stateId}
+    </update>
+    <update id="getFileAudit">
+        update state set auditBrowse=1,auditBrowseDate=#{auditBrowseDate} where stateId=#{stateId}
+    </update>
+</mapper>

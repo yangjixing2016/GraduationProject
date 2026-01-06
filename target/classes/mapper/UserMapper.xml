@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--为这个mapper指定一个唯一的namespace，namespace的值设置成DAO接口名，这样就能够保证能够匹配DAO接口-->
+<mapper namespace="com.example.graduationproject.mapper.UserMapper">
+    <select id="findAll" resultType="User">
+        select * from user
+    </select>
+    <select id="findMenuWriter" resultMap="findM">
+        select * from menu where role in (0,2)
+    </select>
+    <resultMap id="findM" type="menu">
+        <id property="menuId" column="menuId"></id>
+        <result property="path" column="path"></result>
+        <result property="name" column="name"></result>
+        <result property="icon" column="icon"></result>
+        <result property="label" column="label"></result>
+        <result property="signal" column="signal"></result>
+        <result property="url" column="url"></result>
+    </resultMap>
+    <select id="findMenuReader" resultMap="findMM">
+        select * from menu where role in (1,2)
+    </select>
+    <resultMap id="findMM" type="menu">
+        <id property="menuId" column="menuId"></id>
+        <result property="path" column="path"></result>
+        <result property="name" column="name"></result>
+        <result property="icon" column="icon"></result>
+        <result property="label" column="label"></result>
+        <result property="signal" column="signal"></result>
+        <result property="url" column="url"></result>
+    </resultMap>
+    <select id="findMenuEditor" resultMap="findME">
+        select * from editormenu
+    </select>
+    <resultMap id="findME" type="EditorMenu">
+        <id property="editorMenuId" column="editorMenuId"></id>
+        <result property="path" column="path"></result>
+        <result property="name" column="name"></result>
+        <result property="icon" column="icon"></result>
+        <result property="label" column="label"></result>
+        <result property="signal" column="signal"></result>
+        <result property="url" column="url"></result>
+    </resultMap>
+    <select id="findMenuAudit" resultType="AuditMenu">
+        select * from auditmenu
+    </select>
+    <select id="findAuditAccount" resultType="AuditAccount">
+        select * from auditaccount where auditAccountName=#{name} and auditAccountPwd=#{pwd}
+    </select>
+    <select id="getAccount" resultType="Account">
+        select * from account where accountName=#{accountName}
+    </select>
+    <insert id="rgin">
+        insert into account(accountName,accountPwd) values (#{accountName},#{accountPwd})
+    </insert>
+    <select id="getAccountPwd" resultType="Account">
+        select * from account where accountName=#{accountName} and accountPwd=#{accountPwd}
+    </select>
+</mapper>

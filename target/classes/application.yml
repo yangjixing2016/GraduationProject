@@ -1,0 +1,25 @@
+spring:
+    datasource:
+        username: root
+        password: blued0214
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/graduation_design?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        type: com.alibaba.druid.pool.DruidDataSource
+    thymeleaf:
+        cache: false
+    servlet:
+        multipart:
+            enabled: true #默认支持文件上传
+            max-file-size: 30MB # 最大支持文件大小
+            max-request-size: 40MB # 最大支持请求大小
+mybatis:
+    #指定mapper映射文件路径
+    mapper-locations: classpath:mapper/*.xml
+    #设置类型别名
+    type-aliases-package: com.example.graduationproject.model
+
+logging:
+    level:
+        com.example.graduationproject.mapper: debug
+server:
+    port: 8081
